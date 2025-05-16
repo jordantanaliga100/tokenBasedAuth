@@ -2,17 +2,18 @@
 import cors from "cors";
 import dotenv from "dotenv";
 import express, { Request, Response } from "express";
-import { connectDB } from "../config/connection";
-import GlobalException from "./middlewares/GlobalException";
-import NotFound from "./middlewares/NotFound";
+import { connectDB } from "./config/connection.js";
+import GlobalException from "./middlewares/GlobalException.js";
+import NotFound from "./middlewares/NotFound.js";
 
 dotenv.config();
 
 // ENV CONFIG
-const envFile =
-  process.env.NODE_ENV === "production" ? ".env.prod" : ".env.local";
+const nodeEnv = process.env.NODE_ENV || "development";
+const envFile = nodeEnv === "production" ? ".env.prod" : ".env.local";
 dotenv.config({ path: envFile });
-console.log("Loaded " + envFile + ":");
+console.log(`✅ Loaded ${envFile}`);
+console.log("... on " + nodeEnv + " environment 🚀");
 const app = express();
 
 // TOP MIDDLEWARES
@@ -58,4 +59,3 @@ const start = async () => {
   }
 };
 start();
-console.log("... on " + process.env.NODE_ENV + " environment 🚀");
