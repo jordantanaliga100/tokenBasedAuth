@@ -2,6 +2,7 @@
 import cors from "cors";
 import dotenv from "dotenv";
 import express, { Request, Response } from "express";
+import { users } from "./app/constants/users.js";
 import { connectDB } from "./config/connection.js";
 import GlobalException from "./middlewares/GlobalException.js";
 import NotFound from "./middlewares/NotFound.js";
@@ -32,9 +33,13 @@ app.use(express.urlencoded({ extended: true }));
 // ROUTES
 app.get("/", (req: Request, res: Response) => {
   // throw new Error("Testing gin index");
-  res.send("Node_Express Server Alive 🛩️");
-});
+  res.status(200).json({
+    msg: "All Users",
+    data: users.slice(0, 5),
+  });
 
+  // res.send("Node_Express Server Alive 🛩️");
+});
 app.use("/api/v1/auth", () => {});
 app.use("/api/v1/products", () => {});
 app.use("/api/v1/services", () => {});
