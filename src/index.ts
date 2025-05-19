@@ -65,4 +65,4 @@ const start = async () => {
 };
 start();
 
-console.log("running on docker");
+console.log("running on docker...");
