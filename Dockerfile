@@ -17,16 +17,10 @@ COPY . .
 # Build typescript
 RUN npm run build
 
-# Set environment variables if needed
-ENV NODE_ENV=production
-
 # Expose the app port (optional but recommended for Docker networking)
-EXPOSE 5000
+EXPOSE 8080
 
 # Start the app
 CMD ["npm", "run", "start"]
-
-
-
 
 
