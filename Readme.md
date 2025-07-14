@@ -99,3 +99,42 @@ flowchart TD
     OUT_REVOKE --> REFRESH_TOKENS
 
 ```
+
+### 🉐 Docker-Based Dev Setup
+
+> This 👇
+
+🔥 POSTGRESQL
+docker run -d \
+ --name mysql-con \
+ -e MYSQL_ROOT_PASSWORD=secret \
+ -e MYSQL_DATABASE=mydb \
+ -e MYSQL_USER=admin \
+ -e MYSQL_PASSWORD=secret \
+ -p 3306:3306 \
+ mysql
+
+🔥 POSTGRESQL
+docker run -d \
+ --name postgres-con \
+ -e POSTGRES_DB=mydb \
+ -e POSTGRES_USER=admin \
+ -e POSTGRES_PASSWORD=secret \
+ -p 5432:5432 \
+ postgres
+
+🔥 MONGODB
+docker run -d \
+ --name mongo-con \
+ -e MONGO_INITDB_ROOT_USERNAME=admin \
+ -e MONGO_INITDB_ROOT_PASSWORD=secret \
+ -e MONGO_INITDB_DATABASE=mydb \
+ -p 27017:27017 \
+ mongo
+
+> or This 👇
+
+```sh
+> docker-compose -p app up -d
+> docker-compose down
+```

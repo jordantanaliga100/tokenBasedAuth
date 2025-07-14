@@ -1,0 +1,8 @@
+node_modules
+
+.env.local
+.env.prod
+
+mongo-data
+mysql-data 
+postgres-data
