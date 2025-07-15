@@ -1,4 +1,3 @@
-declare module "*";
 declare global {
   namespace Express {
     interface CustomError extends Error {

@@ -15,12 +15,12 @@ RUN npm install
 COPY . .
 
 # Build typescript
-RUN npm run build
+# RUN npm run build
 
 # Expose the app port (optional but recommended for Docker networking)
-EXPOSE 8080
+EXPOSE 5000
 
 # Start the app
-CMD ["npm", "run", "start"]
+CMD ["npm", "run", "start:dev"]
 
 
