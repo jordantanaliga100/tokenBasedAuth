@@ -12,7 +12,7 @@ services:
       - .env.local
     depends_on:
       - postgres
-    command: npm run start:dev
+    command: pnpm run start:dev
 
   # RDBMS HERE
   # mysql:

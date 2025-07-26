@@ -21,6 +21,6 @@ COPY . .
 EXPOSE 5000
 
 # Start the app
-CMD ["npm", "run", "start:dev"]
+CMD ["pnpm", "run", "start:dev"]
 
 
