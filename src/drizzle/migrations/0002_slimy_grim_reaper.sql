@@ -1,2 +1,0 @@
-ALTER TABLE "accounts" DROP CONSTRAINT "accounts_provider_provider_account_id_pk";--> statement-breakpoint
-ALTER TABLE "accounts" ADD CONSTRAINT "accounts_provider_provider_account_id_unique" UNIQUE("provider","provider_account_id");
