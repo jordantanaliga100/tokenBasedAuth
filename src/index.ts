@@ -7,10 +7,7 @@ const port = process.env.PORT || 5000;
 const start = async () => {
   try {
     // call db instance here...
-    await connectMysql(process.env.MYSQL_CONN_STRING as string);
-    // await createTables();
-    // await seedData();
-    // Call your seedData function here
+    await connectMysql();
     // await connectPostgres(process.env.POSTGRES_CONN_STRING as string);
     // await connectMongoDB(process.env.MONGODB_CONN_STRING as string);
 

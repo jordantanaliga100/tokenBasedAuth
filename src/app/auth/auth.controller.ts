@@ -2,26 +2,34 @@
 
 import { Request, Response } from "express";
 import { ErrorClass } from "../../class/ErrorClass.js";
-import { LoginUserDTO } from "./auth.dto.js";
+import { AuthResponseDTO, LoginDTO, RegisterDTO } from "./auth.dto.js";
 import { AuthService } from "./auth.service.js";
 
 export const REGISTER_USER = async (
-  req: Request,
-  res: Response
+  req: Request<{}, any, RegisterDTO, {}>,
+  res: Response<AuthResponseDTO>
 ): Promise<void> => {
   const {
-    body: { password, email },
+    body: { username, email, password },
   } = req;
+  console.log(req.body);
+
   try {
-    if (!email || !password) {
-      throw new ErrorClass.BadRequest("Must have email and password");
+    if (!email || !password || !username) {
+      throw new ErrorClass.BadRequest("All fields are required ! 💁");
     }
-    const user = await AuthService.REGISTER(req.body);
+    // wag mona tayo rito
+    const user = await AuthService.register(req.body);
+
+    console.log("LIST OF USERS 👧", AuthService.getUser());
 
     res.status(201).json({
       success: true,
       message: "User registered successfully",
-      user,
+      data: {
+        username: user.username,
+        email: user.email,
+      },
     });
   } catch (error: any) {
     res.status(400).json({ success: false, message: error.message });
@@ -30,18 +38,31 @@ export const REGISTER_USER = async (
 
 // User Login
 export const LOGIN_USER = async (
-  req: Request,
-  res: Response
+  req: Request<{}, any, LoginDTO, {}>,
+  res: Response<AuthResponseDTO>
 ): Promise<void> => {
-  const { email, password } = req.body as LoginUserDTO;
+  const {
+    body: { email, password },
+  } = req;
+
   try {
     if (!email || !password) {
       throw new ErrorClass.BadRequest("Must have email and password");
     }
-    const user = await AuthService.LOGIN(req.body);
-    res
-      .status(200)
-      .json({ success: true, message: "User logged in successfully", user });
+
+    // wag mona tayo rito
+    const user = await AuthService.login(req.body);
+    console.log("LIST OF USERS 👧", AuthService.getUser());
+
+    res.status(200).json({
+      success: true,
+      message: "User logged in successfully",
+      data: {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+      },
+    });
   } catch (error: any) {
     res.status(400).json({ success: false, message: error.message });
   }
