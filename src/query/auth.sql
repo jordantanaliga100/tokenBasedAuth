@@ -1,33 +1,30 @@
--- Enable UUID support
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-
 -- USERS table
 CREATE TABLE IF NOT EXISTS users (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    username TEXT NOT NULL,
-    email TEXT UNIQUE NOT NULL,
-    hashed_password TEXT NOT NULL,
+    id CHAR(36) PRIMARY KEY,
+    username VARCHAR(255) NOT NULL,
+    email VARCHAR(255) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
--- ACCOUNTS table (optional login methods or identity providers)
+-- ACCOUNTS table (optional login methods)
 CREATE TABLE IF NOT EXISTS accounts (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    provider TEXT NOT NULL,             -- e.g. 'email', 'google', 'github'
-    provider_account_id TEXT NOT NULL,  -- e.g. email address or oauth id
+    id CHAR(36) PRIMARY KEY,
+    user_id CHAR(36) NOT NULL,
+    provider VARCHAR(255) NOT NULL,
+    provider_account_id VARCHAR(255) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE (provider, provider_account_id)  -- prevents duplicate logins
+    UNIQUE KEY unique_provider_account (provider, provider_account_id),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 -- SESSIONS table (session-based auth)
 CREATE TABLE IF NOT EXISTS sessions (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    session_token TEXT UNIQUE NOT NULL,
+    id CHAR(36) PRIMARY KEY,
+    user_id CHAR(36) NOT NULL,
+    session_token VARCHAR(255) UNIQUE NOT NULL,
     expires_at TIMESTAMP NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
-
-

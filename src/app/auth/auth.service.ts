@@ -1,63 +1,66 @@
-import { v4 as uudiv4 } from "uuid";
+import { v4 as uuidv4 } from "uuid";
 import { ErrorClass } from "../../class/ErrorClass.js";
-import { hashPassword } from "../../utils/hashPass.js";
-import { LoginUserDTO, RegisterUserDTO } from "./auth.dto.js";
+import { comparePassword, hashPassword } from "../../utils/hashPass.js";
+import { LoginDTO, RegisterDTO } from "./auth.dto.js";
 
-// Register a new user
-export const REGISTER = async (userData: RegisterUserDTO) => {
-  console.log("SERVICES", userData);
+class Auth {
+  private users: Array<{
+    id: string;
+    email: string;
+    username?: string;
+    password: string;
+  }> = [];
 
-  let db;
-
-  // CHECK IF THERE IS AN EXISTING USER
-  const existingUser = await db.query("SELECT * FROM users WHERE email = $1", [
-    userData.email,
-  ]);
-  // .. throw errors if it exists
-
-  if (existingUser.rows.length > 0) {
-    throw new ErrorClass.BadRequest(
-      "User already exists.. Please login to an exisitng account"
-    );
+  public getUser() {
+    return {
+      count: this.users.length, // number of users
+      users: this.users, // optional: full list
+    };
   }
-  // HASHED PASSWORD BEFORE STORING TO DB
-  const hashedPassword = await hashPassword(userData.password);
+  public async register(userData: RegisterDTO) {
+    const existingUser = this.users.find((u) => u.email === userData.email);
+    if (existingUser) {
+      throw new ErrorClass.BadRequest("User already exists.");
+    }
 
-  // ADD UUID
-  const id = uudiv4();
+    const hashedPassword = await hashPassword(userData.password);
+    const newUser = {
+      id: uuidv4(),
+      email: userData.email,
+      username: userData.username,
+      password: hashedPassword,
+    };
+    this.users.push(newUser);
+    return {
+      id: newUser.id,
+      email: newUser.email,
+      username: newUser.username,
+      created_at: new Date(),
+    };
+  }
 
-  // AND THEN INSERT INTO USER TABLE
-  const result = await db.query(
-    ` INSERT INTO users (id, email, hashed_password)
-      VALUES ($1, $2, $3)
-      RETURNING id, email, created_at
-    `,
-    [id, userData.email, hashedPassword]
-  );
+  public async login(userData: LoginDTO) {
+    const user = this.users.find((u) => u.email === userData.email);
+    if (!user) {
+      throw new ErrorClass.BadRequest(
+        `💁 No user found with email: ${userData.email}`
+      );
+    }
 
-  return result.rows[0];
-};
+    const isMatch = await comparePassword(userData.password, user.password);
+    if (!isMatch) {
+      throw new ErrorClass.BadRequest("Password Incorrect");
+    }
 
-// User Login
-export const LOGIN = async (userData: LoginUserDTO) => {
-  console.log("SERVICES", userData);
+    return { id: user.id, username: user.username, email: user.email };
+  }
 
-  return {};
-};
+  public async logout(tokenOrSessionId: string) {
+    return { message: "User logged out successfully" };
+  }
 
-// User Logout
-export const LOGOUT = async (tokenOrSessionId: string) => {
-  return { message: "User logged out successfully" };
-};
-
-// Forgot Password
-export const FORGOT_PASSWORD = async (email: string) => {
-  return { message: "Password reset link sent" };
-};
-
-export const AuthService = {
-  REGISTER,
-  LOGIN,
-  LOGOUT,
-  FORGOT_PASSWORD,
-};
+  public async forgotPassword(email: string) {
+    return { message: "Password reset link sent" };
+  }
+}
+export const AuthService = new Auth();
