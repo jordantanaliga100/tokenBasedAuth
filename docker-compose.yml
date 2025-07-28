@@ -11,28 +11,27 @@ services:
     env_file:
       - .env.local
     depends_on:
-      - mongo
-    working_dir: /app
-    command: npm run start:dev
+      - postgres
+    command: pnpm run start:dev
 
   # RDBMS HERE
-  mysql:
-    image: mysql:8.0
-    container_name: mysql-con
-    restart: unless-stopped
-    ports:
-      - "3306:3306"
-    environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_USER: admin
-      MYSQL_PASSWORD: secret
-      MYSQL_DATABASE: auth
-    volumes:
-      - ./mysql-data:/var/lib/mysql
+  # mysql:
+  #   image: mysql:8.0
+  #   container_name: mysql-con
+  #   restart: unless-stopped
+  #   ports:
+  #     - "3306:3306"
+  #   environment:
+  #     MYSQL_ROOT_PASSWORD: root
+  #     MYSQL_USER: admin
+  #     MYSQL_PASSWORD: secret
+  #     MYSQL_DATABASE: auth
+  #   volumes:
+  #     - ./mysql-data:/var/lib/mysql
 
   postgres:
     image: postgres:16
-    container_name: postgres-con
+    container_name: postgres-session
     restart: unless-stopped
     ports:
       - "5432:5432"
@@ -42,40 +41,42 @@ services:
       POSTGRES_DB: auth
     volumes:
       - ./postgres-data:/var/lib/postgresql/data
+    depends_on:
+      - app
 
   # NO-SQL HERE
-  mongo:
-    image: mongo:latest
-    container_name: mongodb-con
-    restart: unless-stopped
-    ports:
-      - "27017:27017"
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: admin
-      MONGO_INITDB_ROOT_PASSWORD: secret
-    volumes:
-      - ./mongo-data:/data/db
+  # mongo:
+  #   image: mongo:latest
+  #   container_name: mongodb-con
+  #   restart: unless-stopped
+  #   ports:
+  #     - "27017:27017"
+  #   environment:
+  #     MONGO_INITDB_ROOT_USERNAME: admin
+  #     MONGO_INITDB_ROOT_PASSWORD: secret
+  #   volumes:
+  #     - ./mongo-data:/data/db
 
   # GUI HERE:
   adminer:
     image: adminer
-    container_name: adminer
+    container_name: sql-ui
     restart: unless-stopped
     ports:
-      - "8080:8080"
+      - "8081:8080"
 
-  mongo-express:
-    image: mongo-express
-    container_name: mongo-express
-    restart: unless-stopped
-    ports:
-      - "8081:8081"
-    environment:
-      ME_CONFIG_MONGODB_ADMINUSERNAME: admin
-      ME_CONFIG_MONGODB_ADMINPASSWORD: secret
-      ME_CONFIG_MONGODB_SERVER: mongo
+  # mongo-express:
+  #   image: mongo-express
+  #   container_name: mongo-express
+  #   restart: unless-stopped
+  #   ports:
+  #     - "8081:8081"
+  #   environment:
+  #     ME_CONFIG_MONGODB_ADMINUSERNAME: admin
+  #     ME_CONFIG_MONGODB_ADMINPASSWORD: secret
+  #     ME_CONFIG_MONGODB_SERVER: mongo
 
 volumes:
-  mysql-data:
+  # mysql-data:
   postgres-data:
-  mongo-data:
+  # mongo-data:

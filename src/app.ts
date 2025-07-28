@@ -2,6 +2,7 @@
 import cors from "cors";
 import dotenv from "dotenv";
 import express, { Request, Response } from "express";
+import AuthRoutes from "./app/auth/auth.route.js";
 import GlobalException from "./middlewares/GlobalException.js";
 import NotFound from "./middlewares/NotFound.js";
 
@@ -32,11 +33,13 @@ app.use(express.urlencoded({ extended: true }));
 app.get("/", (req: Request, res: Response) => {
   res.send("Server Alive 🛩️");
 });
-app.use("/api/v1/auth", () => {});
+app.use("/api/v1/auth", AuthRoutes);
 app.use("/api/v1/products", () => {});
 app.use("/api/v1/services", () => {});
 app.use("/api/v1/contact", () => {});
 app.use("/api/v1/users", () => {});
+app.use("/api/v1/posts", () => {});
+app.use("/api/v1/comments", () => {});
 
 // BOTTOM MIDDLEWARES
 app.use(NotFound);
