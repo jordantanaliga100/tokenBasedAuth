@@ -5,15 +5,15 @@ export interface AuthDTO {
   email: string;
   password: string;
   username?: string; // optional depende sa registration
-  createdAt?: Date;
-  updatedAt?: Date;
+  created_at?: Date;
+  updated_at?: Date;
 }
 
 export type RegisterDTO = CreateDTO<
   Pick<AuthDTO, "username" | "email" | "password">
 >;
 export type LoginDTO = CreateDTO<Pick<AuthDTO, "email" | "password">>;
-export type AuthResponseDTO = ResponseDTO<Partial<AuthDTO>>;
+export type AuthResponseDTO = ResponseDTO<Omit<AuthDTO, "password">>;
 
 // // src/modules/auth/auth.dto.ts
 

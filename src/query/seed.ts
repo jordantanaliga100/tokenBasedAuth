@@ -1,4 +1,4 @@
-import { getPool } from "../db/mysql.js";
+import { getPool } from "../db/mysql/mysql.js";
 
 export async function createTables() {
   const pool = getPool()!;
