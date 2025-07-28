@@ -1,4 +1,4 @@
-import { getPool } from "../../db/mysql.js";
+import { getPool } from "../../db/mysql/mysql.js";
 import { QueryParams } from "../../types/query.js";
 
 class UserService {

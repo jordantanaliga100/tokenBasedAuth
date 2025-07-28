@@ -2,6 +2,7 @@
 import cors from "cors";
 import dotenv from "dotenv";
 import express, { Request, Response } from "express";
+import morgan from "morgan";
 import AuthRoutes from "./app/auth/auth.route.js";
 import GlobalException from "./middlewares/GlobalException.js";
 import NotFound from "./middlewares/NotFound.js";
@@ -25,6 +26,7 @@ app.use(
     credentials: true,
   })
 );
+app.use(morgan("tiny"));
 app.use(express.json());
 app.use(express.static("./public"));
 app.use(express.urlencoded({ extended: true }));
