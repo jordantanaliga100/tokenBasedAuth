@@ -1,5 +1,4 @@
 
-
 # Base Image
 FROM node:20
 
@@ -16,18 +15,12 @@ RUN npm install
 COPY . .
 
 # Build typescript
-RUN npm run build
-
-# Set environment variables if needed
-ENV NODE_ENV=production
+# RUN npm run build
 
 # Expose the app port (optional but recommended for Docker networking)
 EXPOSE 5000
 
 # Start the app
-CMD ["npm", "run", "start"]
-
-
-
+CMD ["pnpm", "run", "start:dev"]
 
 

@@ -1,13 +1,15 @@
-# 🪪 Token-Based Authentication with Express and TypeScript
+# 🌐 Session-Based Authentication with Express and TypeScript (PostgreSQL)
 
-A simple Node.js application demonstrating **token-based authentication** using **Express**, **TypeScript**, and **PostgreSQL**. Tokens (JWT) are used for stateless authentication.
+A simple Node.js application demonstrating **custom session-based authentication** using **Express**, **TypeScript**, and **PostgreSQL**. User sessions are manually stored in the database for full control and flexibility.
 
 ---
 
 ## 🚀 Features
 
 - ✅ User registration and login
-- 🔐 Token-based authentication using **JWT (JSON Web Tokens)**
+- 🍪 Custom session management (no `express-session`)
+- 🔐 HTTP-only Cookies for session tracking
+- ⏳ Session expiration with auto-extension on user activity
 - 🧠 TypeScript for type safety
 - 📁 Organized project structure
 - 🌱 Environment variable support (`dotenv`)
@@ -19,85 +21,81 @@ A simple Node.js application demonstrating **token-based authentication** using 
 - Node.js
 - Express.js
 - TypeScript
-- PostgreSQL
-- JWT (`jsonwebtoken`)
-- bcrypt
+- PostgreSQL, Mysql, MongoDB
+- dotenv
 
 ---
 
 ## 📦 Installation
 
 ```bash
-git clone https://github.com/your-username/token-auth-example
-cd token-auth-example
+git clone https://github.com/jordantanaliga100/sessionBasedAuth
+cd sessionBasedAuth
 npm install
-cp .env.example .env
-npm run dev
 ```
 
-🔑 Token-Based Authentication (with JWT + PostgreSQL)
+🌐 Session-Based Authentication (with Cookies + PostgreSQL)
 🗺️ Flowchart
-🧑‍💻 Token-Based Auth Flow (Register, Login, Access, Refresh)
+🧑‍💻 Session-Based Auth Flow (Register, Login, Me, Logout)
 
 ```mermaid
 flowchart TD
     %% CLIENT
-    subgraph CLIENT [Frontend Client]
+    subgraph CLIENT [💻 Frontend Client]
         direction TB
-        REG["Register: full_name, email, password"]
-        LOG["Login: email, password"]
-        API_REQ["Request /me with JWT"]
-        REFRESH["Request /refresh with Refresh Token"]
-        OUT["Request /logout"]
+        REG["📝 Register: full_name, email, password"]
+        LOG["🔑 Login: email, password"]
+        ME["📥 Request /me with Cookie"]
+        OUT["🚪 Request /logout with Cookie"]
     end
 
     %% SERVER
-    subgraph SERVER [API Server]
+    subgraph SERVER [🖥️ API Server]
         direction TB
 
         %% Register
-        REG --> REG_VALIDATE["Validate Registration Data"]
-        REG_VALIDATE -- Invalid --> REG_ERR["Return 400 Bad Request"]
-        REG_VALIDATE -- Valid --> REG_HASH["Hash Password - bcrypt"]
-        REG_HASH --> REG_SAVE["Insert into users table"]
-        REG_SAVE --> REG_DONE["Return 201 Created"]
+        REG --> REG_VALIDATE["✅ Validate Registration Data"]
+        REG_VALIDATE -- ❌ Invalid --> REG_ERR["🚫 Return 400 Bad Request"]
+        REG_VALIDATE -- ✅ Valid --> REG_USERS["📦 Insert into users table"]
+        REG_USERS --> REG_ACCOUNTS["🔐 Insert into accounts table"]
+        REG_ACCOUNTS --> REG_DONE["🎉 Return 201 Created"]
 
         %% Login
-        LOG --> LOG_VERIFY["Verify email and password"]
-        LOG_VERIFY -- Invalid --> LOG_ERR["Return 401 Unauthorized"]
-        LOG_VERIFY -- Valid --> LOG_GEN_TOKEN["Generate Access & Refresh Tokens"]
-        LOG_GEN_TOKEN --> LOG_SET_COOKIE["Set-Cookie for refresh token (optional)"]
-        LOG_SET_COOKIE --> LOG_DONE["Return 200 OK with Access Token"]
+        LOG --> LOG_VERIFY["🔍 Verify email and password"]
+        LOG_VERIFY -- ❌ Invalid --> LOG_ERR["🚫 Return 401 Unauthorized"]
+        LOG_VERIFY -- ✅ Valid --> LOG_SESSION["🗄️ Insert into sessions table"]
+        LOG_SESSION --> LOG_COOKIE["🍪 Set-Cookie: session_id (HttpOnly)"]
+        LOG_COOKIE --> LOG_DONE["✅ Return 200 OK with User Data"]
 
-        %% Access Protected Route
-        API_REQ --> API_VALIDATE["Verify JWT Signature & Expiration"]
-        API_VALIDATE -- Invalid --> API_ERR["Return 401 Unauthorized"]
-        API_VALIDATE -- Valid --> API_DONE["Return User Data"]
-
-        %% Refresh Token
-        REFRESH --> REFRESH_VERIFY["Validate Refresh Token"]
-        REFRESH_VERIFY -- Invalid --> REFRESH_ERR["Return 401 Unauthorized"]
-        REFRESH_VERIFY -- Valid --> REFRESH_NEW["Generate New Access Token"]
-        REFRESH_NEW --> REFRESH_DONE["Return 200 OK with New Token"]
+        %% Me
+        ME --> ME_VALIDATE["🔍 Validate session_id from Cookie"]
+        ME_VALIDATE -- ❌ Invalid --> ME_ERR["🚫 Return 401 Unauthorized"]
+        ME_VALIDATE -- ✅ Valid --> ME_CHECK_EXP["⏳ Check if session expired"]
+        ME_CHECK_EXP -- ❌ Expired --> ME_ERR
+        ME_CHECK_EXP -- ✅ Active --> ME_EXTEND["♻️ Extend expires_at in sessions table"]
+        ME_EXTEND --> ME_DONE["📤 Return User Data"]
 
         %% Logout
-        OUT --> OUT_REVOKE["Revoke Refresh Token (DB delete or blacklist)"]
-        OUT_REVOKE --> OUT_DONE["Return 200 OK Logged Out"]
+        OUT --> OUT_DELETE["🗑️ Delete session in sessions table"]
+        OUT_DELETE --> OUT_CLEAR["🧹 Clear session_id Cookie"]
+        OUT_CLEAR --> OUT_DONE["✅ Return 200 OK Logged Out"]
     end
 
     %% DATABASE
-    subgraph DB [PostgreSQL Database]
-        USERS["users"]
-        REFRESH_TOKENS["refresh_tokens"]
+    subgraph DB [🗄️ PostgreSQL Database]
+     direction RL
+        USERS["📁 users"]
+        ACCOUNTS["📁 accounts"]
+        SESSIONS["📁 sessions"]
     end
 
     %% DB Interactions
-    REG_SAVE --> USERS
-    LOG_VERIFY --> USERS
-    REFRESH_VERIFY --> REFRESH_TOKENS
-    REFRESH_NEW --> REFRESH_TOKENS
-    OUT_REVOKE --> REFRESH_TOKENS
-
+    REG_USERS --> USERS
+    REG_ACCOUNTS --> ACCOUNTS
+    LOG_SESSION --> SESSIONS
+    ME_VALIDATE --> SESSIONS
+    ME_EXTEND --> SESSIONS
+    OUT_DELETE --> SESSIONS
 ```
 
 ### 🉐 Docker-Based Dev Setup
