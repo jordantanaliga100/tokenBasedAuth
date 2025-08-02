@@ -1,4 +1,4 @@
-import { getPool } from "../../db/mysql.js";
+import { getPool } from "../../db/mysql/mysql.js";
 
 class PostService {
   private get pool() {

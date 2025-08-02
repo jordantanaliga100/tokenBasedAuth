@@ -2,6 +2,9 @@
 # Base Image
 FROM node:20
 
+# Install pnpm globally
+RUN npm install -g pnpm
+
 # Create a app directory
 WORKDIR /app
 
@@ -22,5 +25,6 @@ EXPOSE 5000
 
 # Start the app
 CMD ["pnpm", "run", "start:dev"]
+
 
 

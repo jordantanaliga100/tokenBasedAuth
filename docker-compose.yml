@@ -1,7 +1,9 @@
 services:
   # APP
   app:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
     container_name: app
     ports:
       - "5050:5000"
@@ -11,38 +13,49 @@ services:
     env_file:
       - .env.local
     depends_on:
-      - postgres
+      mysql:
+        condition: service_healthy
     command: pnpm run start:dev
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
 
   # RDBMS HERE
-  # mysql:
-  #   image: mysql:8.0
-  #   container_name: mysql-con
-  #   restart: unless-stopped
-  #   ports:
-  #     - "3306:3306"
-  #   environment:
-  #     MYSQL_ROOT_PASSWORD: root
-  #     MYSQL_USER: admin
-  #     MYSQL_PASSWORD: secret
-  #     MYSQL_DATABASE: auth
-  #   volumes:
-  #     - ./mysql-data:/var/lib/mysql
-
-  postgres:
-    image: postgres:16
-    container_name: postgres-session
+  mysql:
+    image: mysql:8.0
+    container_name: mysql-con
     restart: unless-stopped
     ports:
-      - "5432:5432"
+      - "3306:3306"
     environment:
-      POSTGRES_USER: admin
-      POSTGRES_PASSWORD: secret
-      POSTGRES_DB: auth
+      MYSQL_ROOT_PASSWORD: secret
+      MYSQL_DATABASE: mydb
+      # MYSQL_USER: root
+      # MYSQL_PASSWORD: secret
     volumes:
-      - ./postgres-data:/var/lib/postgresql/data
-    depends_on:
-      - app
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-psecret"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # postgres:
+  #   image: postgres:16
+  #   container_name: postgres-session
+  #   restart: unless-stopped
+  #   ports:
+  #     - "5432:5432"
+  #   environment:
+  #     POSTGRES_USER: admin
+  #     POSTGRES_PASSWORD: secret
+  #     POSTGRES_DB: auth
+  #   volumes:
+  #     - ./postgres-data:/var/lib/postgresql/data
+  #   depends_on:
+  #     - app
 
   # NO-SQL HERE
   # mongo:
@@ -63,7 +76,7 @@ services:
     container_name: sql-ui
     restart: unless-stopped
     ports:
-      - "8081:8080"
+      - "8080:8080"
 
   # mongo-express:
   #   image: mongo-express
@@ -77,6 +90,6 @@ services:
   #     ME_CONFIG_MONGODB_SERVER: mongo
 
 volumes:
-  # mysql-data:
-  postgres-data:
+  mysql-data:
+  # postgres-data:
   # mongo-data:

@@ -2,18 +2,22 @@ import { CreateDTO, ResponseDTO } from "../../utils/global-dto.js";
 
 export interface AuthDTO {
   id?: string; // optional for input, required sa response
-  email: string;
-  password: string;
+  email?: string;
+  password?: string;
   username?: string; // optional depende sa registration
-  createdAt?: Date;
-  updatedAt?: Date;
+  created_at?: Date;
+  updated_at?: Date;
 }
 
 export type RegisterDTO = CreateDTO<
   Pick<AuthDTO, "username" | "email" | "password">
 >;
 export type LoginDTO = CreateDTO<Pick<AuthDTO, "email" | "password">>;
-export type AuthResponseDTO = ResponseDTO<Partial<AuthDTO>>;
+export type AuthResponseDTO = ResponseDTO<
+  AuthDTO,
+  { cookie?: string; user?: any; session?: any }
+>;
+// export type CurrentUserResponseDTO = ResponseDTO<{ cookie?: string }>;
 
 // // src/modules/auth/auth.dto.ts
 
