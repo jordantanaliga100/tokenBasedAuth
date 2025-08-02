@@ -6,6 +6,11 @@ declare global {
       msg: Record<string, any>;
       isOperational?: boolean;
     }
+
+    interface Request {
+      user?: any;
+      session?: any;
+    }
   }
 }
 

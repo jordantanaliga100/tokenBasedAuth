@@ -6,13 +6,23 @@ import { AuthResponseDTO, LoginDTO, RegisterDTO } from "./auth.dto.js";
 import { AuthService } from "./auth.service.js";
 
 export const CURRENT_USER = async (
-  req: Request<{}, any, {}, {}>,
+  req: Request<{}, any, { user: any }, {}>,
   res: Response<AuthResponseDTO>
 ) => {
   try {
+    // Naka-attach na ang session/user info sa req.body.user via AuthGuards
+    const user = req.user;
+    const session = req.session;
+
+    // console.log("FROM AUTH GUARDS user 👮‍♂️", user);
+    // console.log("FROM AUTH GUARDS session 🌄", session);
+
     res.status(201).json({
       success: true,
       message: "Current User",
+      data: {
+        user,
+      },
     });
   } catch (error: any) {
     res.status(400).json({ success: false, message: error.message });
@@ -57,15 +67,23 @@ export const LOGIN_USER = async (
   const {
     body: { email, password },
   } = req;
-
+  const userAgent = req.headers["user-agent"] || "unknown";
+  const userIP =
+    req.headers["x-forwarded-for"]?.toString().split(",")[0] || req.ip;
   try {
     if (!email || !password) {
       throw new ErrorClass.BadRequest("Must have email and password");
     }
 
     // wag mona tayo rito
-    const user = await AuthService.login(req.body);
+    const user = await AuthService.login(req.body, userAgent, userIP);
     console.log("NEWLY LOGGED IN USER 👧", user);
+    res.cookie("session_token", user.sessionToken, {
+      httpOnly: false,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: Date.now() + 1000 * 10, // 10 seconds
+    });
     res.status(200).json({
       success: true,
       message: "User logged in successfully",
@@ -86,10 +104,36 @@ export const LOGOUT_USER = async (
   res: Response
 ): Promise<void> => {
   try {
-    const token = req.cookies.token;
+    // kunin ang session token sa cookies
+    const cookies = req.headers.cookie;
+    console.log("RAW COOKIE HEADER:", cookies);
 
-    res.clearCookie("token");
-    res.status(200).json({ success: true, message: "Logged out successfully" });
+    if (!cookies) {
+      throw new ErrorClass.NotFound("No cookies found in request.");
+    }
+    console.log("CURRENT COOKIES", cookies);
+
+    const token = cookies
+      .split(";")
+      .find((c) => c.trim().startsWith("session_token="))
+      ?.split("=")[1];
+
+    if (!token) {
+      throw new ErrorClass.BadRequest("No active session found.");
+    }
+    await AuthService.logout(token);
+
+    // // clear the cookie
+    res.clearCookie("session_token", {
+      httpOnly: false,
+      sameSite: "strict",
+      secure: process.env.NODE_ENV === "production",
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "User logged out successfully",
+    });
   } catch (error: any) {
     res.status(400).json({ success: false, message: error.message });
   }
