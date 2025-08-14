@@ -1,15 +1,15 @@
-# 🌐 Token-Based Authentication with Express and TypeScript (PostgreSQL)
+# 🌐 Session-Based Authentication with Express and TypeScript (PostgreSQL)
 
-A simple Node.js application demonstrating **JWT (token-based) authentication** using **Express**, **TypeScript**, and **PostgreSQL**. Tokens are signed and verified without server-side sessions for a fully stateless architecture.
+A simple Node.js application demonstrating **custom session-based authentication** using **Express**, **TypeScript**, and **PostgreSQL**. User sessions are manually stored in the database for full control and flexibility.
 
 ---
 
 ## 🚀 Features
 
 - ✅ User registration and login
-- 🔐 Access tokens (JWT) and refresh tokens
-- 📦 Tokens stored in client-side (localStorage or in-memory)
-- ⏳ Token expiration & refresh flow
+- 🍪 Custom session management (no `express-session`)
+- 🔐 HTTP-only Cookies for session tracking
+- ⏳ Session expiration with auto-extension on user activity
 - 🧠 TypeScript for type safety
 - 📁 Organized project structure
 - 🌱 Environment variable support (`dotenv`)
@@ -21,19 +21,18 @@ A simple Node.js application demonstrating **JWT (token-based) authentication** 
 - Node.js
 - Express.js
 - TypeScript
-- PostgreSQL, MySQL, MongoDB
-- JWT (jsonwebtoken)
+- PostgreSQL, Mysql, MongoDB
 - dotenv
 
 ---
 
 ## 📦 Installation
 
-````bash
-git clone https://github.com/jordantanaliga100/tokenBasedAuth
-cd tokenBasedAuth
+```bash
+git clone https://github.com/jordantanaliga100/sessionBasedAuth
+cd sessionBasedAuth
 npm install
-
+```
 
 🌐 Session-Based Authentication (with Cookies + PostgreSQL)
 🗺️ Flowchart
@@ -46,9 +45,8 @@ flowchart TD
         direction TB
         REG["📝 Register: full_name, email, password"]
         LOG["🔑 Login: email, password"]
-        ME["📥 Request /me with Authorization: Bearer <token>"]
-        REFRESH["♻️ Refresh token when expired"]
-        OUT["🚪 Request /logout (invalidate refresh token)"]
+        ME["📥 Request /me with Cookie"]
+        OUT["🚪 Request /logout with Cookie"]
     end
 
     %% SERVER
@@ -59,46 +57,46 @@ flowchart TD
         REG --> REG_VALIDATE["✅ Validate Registration Data"]
         REG_VALIDATE -- ❌ Invalid --> REG_ERR["🚫 Return 400 Bad Request"]
         REG_VALIDATE -- ✅ Valid --> REG_USERS["📦 Insert into users table"]
-        REG_USERS --> REG_ACCOUNTS["🔐 Hash password and save"]
+        REG_USERS --> REG_ACCOUNTS["🔐 Insert into accounts table"]
         REG_ACCOUNTS --> REG_DONE["🎉 Return 201 Created"]
 
         %% Login
         LOG --> LOG_VERIFY["🔍 Verify email and password"]
         LOG_VERIFY -- ❌ Invalid --> LOG_ERR["🚫 Return 401 Unauthorized"]
-        LOG_VERIFY -- ✅ Valid --> LOG_TOKENS["🔑 Generate Access & Refresh Tokens"]
-        LOG_TOKENS --> LOG_DONE["✅ Return tokens and user data"]
+        LOG_VERIFY -- ✅ Valid --> LOG_SESSION["🗄️ Insert into sessions table"]
+        LOG_SESSION --> LOG_COOKIE["🍪 Set-Cookie: session_id (HttpOnly)"]
+        LOG_COOKIE --> LOG_DONE["✅ Return 200 OK with User Data"]
 
         %% Me
-        ME --> ME_VALIDATE["🔍 Verify Access Token (JWT)"]
+        ME --> ME_VALIDATE["🔍 Validate session_id from Cookie"]
         ME_VALIDATE -- ❌ Invalid --> ME_ERR["🚫 Return 401 Unauthorized"]
-        ME_VALIDATE -- ✅ Valid --> ME_DONE["📤 Return User Data"]
-
-        %% Refresh Token
-        REFRESH --> REFRESH_VALIDATE["🔍 Verify Refresh Token"]
-        REFRESH_VALIDATE -- ❌ Invalid --> REFRESH_ERR["🚫 Return 403 Forbidden"]
-        REFRESH_VALIDATE -- ✅ Valid --> REFRESH_NEW["♻️ Issue new Access Token"]
-        REFRESH_NEW --> REFRESH_DONE["📤 Return new token"]
+        ME_VALIDATE -- ✅ Valid --> ME_CHECK_EXP["⏳ Check if session expired"]
+        ME_CHECK_EXP -- ❌ Expired --> ME_ERR
+        ME_CHECK_EXP -- ✅ Active --> ME_EXTEND["♻️ Extend expires_at in sessions table"]
+        ME_EXTEND --> ME_DONE["📤 Return User Data"]
 
         %% Logout
-        OUT --> OUT_DELETE["🗑️ Invalidate refresh token (DB or blacklist)"]
-        OUT_DELETE --> OUT_DONE["✅ Return 200 OK Logged Out"]
+        OUT --> OUT_DELETE["🗑️ Delete session in sessions table"]
+        OUT_DELETE --> OUT_CLEAR["🧹 Clear session_id Cookie"]
+        OUT_CLEAR --> OUT_DONE["✅ Return 200 OK Logged Out"]
     end
 
     %% DATABASE
-    subgraph DB [🗄️ Database]
+    subgraph DB [🗄️ PostgreSQL Database]
      direction RL
         USERS["📁 users"]
         ACCOUNTS["📁 accounts"]
-        REFRESH_TOKENS["📁 refresh_tokens"]
+        SESSIONS["📁 sessions"]
     end
 
     %% DB Interactions
     REG_USERS --> USERS
     REG_ACCOUNTS --> ACCOUNTS
-    REFRESH_VALIDATE --> REFRESH_TOKENS
-    OUT_DELETE --> REFRESH_TOKENS
-
-````
+    LOG_SESSION --> SESSIONS
+    ME_VALIDATE --> SESSIONS
+    ME_EXTEND --> SESSIONS
+    OUT_DELETE --> SESSIONS
+```
 
 ### 🉐 Docker-Based Dev Setup
 
