@@ -12,7 +12,7 @@ WORKDIR /app
 COPY package*.json ./
 
 # Run deps
-RUN npm install
+RUN pnpm install
 
 # Copy source code
 COPY . .

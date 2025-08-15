@@ -12,28 +12,6 @@ class Auth {
     password: string;
   }> = [];
 
-  // public async register(userData: RegisterDTO) {
-  //   const existingUser = this.users.find((u) => u.email === userData.email);
-  //   if (existingUser) {
-  //     throw new ErrorClass.BadRequest("User already exists.");
-  //   }
-
-  //   const hashedPassword = await hashPassword(userData.password);
-  //   const newUser = {
-  //     id: uuidv4(),
-  //     email: userData.email,
-  //     username: userData.username,
-  //     password: hashedPassword,
-  //   };
-  //   this.users.push(newUser);
-  //   return {
-  //     id: newUser.id,
-  //     email: newUser.email,
-  //     username: newUser.username,
-  //     created_at: new Date(),
-  //   };
-  // }
-
   public async register(userData: RegisterDTO) {
     // console.log("🙋 User from Userdata", userData);
 
@@ -48,17 +26,25 @@ class Auth {
       console.log("User already exists:", existingUser[0]);
       throw new ErrorClass.BadRequest("User already exists.");
     }
-    // hashed then
+    // hashed thenu
     const hashedPassword = await hashPassword(userData.password!);
     // create user
     const userId = uuidv4();
-    const [result] = await pool.query(
+    await pool.query(
       `
       INSERT INTO users (id, username, email, password) 
       VALUES (?, ?, ?, ?)
       `,
       [userId, userData.username, userData.email, hashedPassword]
     );
+
+    await pool.query(
+      ` INSERT INTO accounts (id, user_id, provider, provider_account_id)
+        VALUES (?, ?, ?, ?)
+      `,
+      [uuidv4(), userId, "local", userId]
+    );
+
     // fetch the user
     const [userRows] = await pool.query(`SELECT * FROM users WHERE id = ?`, [
       userId,
@@ -70,21 +56,6 @@ class Auth {
     return user;
   }
 
-  // public async login(userData: LoginDTO) {
-  //   const user = this.users.find((u) => u.email === userData.email);
-  //   if (!user) {
-  //     throw new ErrorClass.BadRequest(
-  //       `💁 No user found with email: ${userData.email}`
-  //     );
-  //   }
-
-  //   const isMatch = await comparePassword(userData.password, user.password);
-  //   if (!isMatch) {
-  //     throw new ErrorClass.BadRequest("Password Incorrect");
-  //   }
-
-  //   return { id: user.id, username: user.username, email: user.email };
-  // }
   public async login(
     userData: LoginDTO,
     userAgent: string,
@@ -116,26 +87,11 @@ class Auth {
       throw new ErrorClass.BadRequest("Invalid email or password.");
     }
 
-    // 3. Create session only if password is valid
-    const sessionToken = uuidv4();
-    const expiresAt = new Date(Date.now() + 1000 * 10); // 10 seconds
-
-    // OPTIONAL: delete old sessions (kung single session policy)
-    await pool.query(`DELETE FROM sessions WHERE user_id = ?`, [user.id]);
-
-    await pool.query(
-      `
-    INSERT INTO sessions (id, user_id, session_token, user_agent, ip_address, expires_at)
-    VALUES (?, ?, ?, ?, ?, ?)
-    `,
-      [uuidv4(), user.id, sessionToken, userAgent, userIP, expiresAt]
-    );
-
     // 4. Remove password before returning
     delete user.password;
 
     // 5. Return user + session token (para sa controller)
-    return { ...user, sessionToken };
+    return { ...user };
   }
 
   public async logout(session_token: string) {

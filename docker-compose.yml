@@ -22,6 +22,22 @@ services:
       timeout: 5s
       retries: 3
 
+  # CACHED DB
+  redis:
+    image: redis/redis-stack:latest
+    container_name: redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+      - "8001:8001"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
   # RDBMS HERE
   mysql:
     image: mysql:8.0
@@ -91,5 +107,6 @@ services:
 
 volumes:
   mysql-data:
+  redis-data:
   # postgres-data:
   # mongo-data:
