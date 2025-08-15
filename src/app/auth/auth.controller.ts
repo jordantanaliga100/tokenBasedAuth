@@ -10,18 +10,13 @@ export const CURRENT_USER = async (
   res: Response<AuthResponseDTO>
 ) => {
   try {
-    // Naka-attach na ang session/user info sa req.body.user via AuthGuards
-    const user = req.user;
-    const session = req.session;
-
-    // console.log("FROM AUTH GUARDS user 👮‍♂️", user);
-    // console.log("FROM AUTH GUARDS session 🌄", session);
+    const { meta, ...safeSession } = req.user;
 
     res.status(201).json({
       success: true,
       message: "Current User",
       data: {
-        user,
+        user: safeSession,
       },
     });
   } catch (error: any) {
@@ -33,26 +28,24 @@ export const REGISTER_USER = async (
   req: Request<{}, any, RegisterDTO, {}>,
   res: Response<AuthResponseDTO>
 ): Promise<void> => {
-  const {
-    body: { username, email, password },
-  } = req;
-
   try {
+    const {
+      body: { username, email, password },
+    } = req;
     if (!email || !password || !username) {
       throw new ErrorClass.BadRequest("All fields are required ! 💁");
     }
     const user = await AuthService.register(req.body);
+
+    // serialize here...
+    const { password: pass, ...safefuser } = user as any;
 
     console.log("NEWLY REGISTERED USER 👧", user);
 
     res.status(201).json({
       success: true,
       message: "User registered successfully",
-      data: {
-        id: user.id,
-        username: user.username,
-        email: user.email,
-      },
+      data: safefuser,
     });
   } catch (error: any) {
     res.status(400).json({ success: false, message: error.message });
@@ -75,15 +68,20 @@ export const LOGIN_USER = async (
       throw new ErrorClass.BadRequest("Must have email and password");
     }
 
-    // wag mona tayo rito
     const user = await AuthService.login(req.body, userAgent, userIP);
     console.log("NEWLY LOGGED IN USER 👧", user);
-    res.cookie("session_token", user.sessionToken, {
-      httpOnly: false,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-      maxAge: Date.now() + 1000 * 10, // 10 seconds
-    });
+
+    // 🔴 SAVED TO SESSION
+    req.session.user = {
+      id: user.id,
+      username: user.username,
+      email: user.email,
+      meta: {
+        ip: req.headers["x-forwarded-for"]?.toString().split(",")[0] || req.ip,
+        userAgent: req.headers["user-agent"] || "unknown",
+      },
+    };
+
     res.status(200).json({
       success: true,
       message: "User logged in successfully",
@@ -104,35 +102,26 @@ export const LOGOUT_USER = async (
   res: Response
 ): Promise<void> => {
   try {
-    // kunin ang session token sa cookies
-    const cookies = req.headers.cookie;
-    console.log("RAW COOKIE HEADER:", cookies);
+    req.session.destroy((err) => {
+      if (err) {
+        console.error("Session destroy error:", err);
+        return res
+          .status(500)
+          .json({ success: false, message: "Failed to logout" });
+      }
 
-    if (!cookies) {
-      throw new ErrorClass.NotFound("No cookies found in request.");
-    }
-    console.log("CURRENT COOKIES", cookies);
+      // 3️⃣ Clear cookie (connect.sid is default for express-session)
+      res.clearCookie("session_id", {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+      });
 
-    const token = cookies
-      .split(";")
-      .find((c) => c.trim().startsWith("session_token="))
-      ?.split("=")[1];
-
-    if (!token) {
-      throw new ErrorClass.BadRequest("No active session found.");
-    }
-    await AuthService.logout(token);
-
-    // // clear the cookie
-    res.clearCookie("session_token", {
-      httpOnly: false,
-      sameSite: "strict",
-      secure: process.env.NODE_ENV === "production",
-    });
-
-    res.status(200).json({
-      success: true,
-      message: "User logged out successfully",
+      // 4️⃣ Success response
+      res.status(200).json({
+        success: true,
+        message: "User logged out successfully",
+      });
     });
   } catch (error: any) {
     res.status(400).json({ success: false, message: error.message });

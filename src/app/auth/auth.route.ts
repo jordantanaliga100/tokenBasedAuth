@@ -1,5 +1,5 @@
 import express from "express";
-import AuthGuards from "../../middlewares/AuthMiddleware.js";
+import AuthGuards from "../../middlewares/AuthGuards.js";
 import {
   CURRENT_USER,
   LOGIN_USER,
