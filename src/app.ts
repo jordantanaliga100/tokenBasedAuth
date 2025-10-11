@@ -1,5 +1,4 @@
 // IMPORTS
-import { RedisStore } from "connect-redis";
 import cors from "cors";
 import dotenv from "dotenv";
 import ejs from "ejs";
@@ -12,7 +11,7 @@ import AuthRoutes from "./app/auth/auth.route.js";
 import AuthGuards from "./middlewares/AuthGuards.js";
 import GlobalException from "./middlewares/GlobalException.js";
 import NotFound from "./middlewares/NotFound.js";
-import { redisClient } from "./utils/redis.js";
+import { createSessionStore } from "./utils/sessionStore.js";
 dotenv.config();
 
 // DIR CONFIG
@@ -47,22 +46,44 @@ app.use(morgan("tiny"));
 app.use(express.json());
 app.use(express.static("./public"));
 app.use(express.urlencoded({ extended: true }));
+
+// 🩸 WITH SESSION STORE
+const store = await createSessionStore();
 app.use(
   session({
     name: "session_id",
-    store: new RedisStore({ client: redisClient }),
+    // store: new RedisStore({ client: redisClient, ttl: 2000 * 60 }),
+    store: store,
     secret: process.env.SESSION_SECRET || "secret",
-    resave: false,
     saveUninitialized: false,
     rolling: true,
+    resave: true,
     cookie: {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
-      maxAge: 2000 * 60,
+      // maxAge: 24 * 60 * 60 * 1000, // 1 day
+      maxAge: 100 * 1000,
     },
   })
 );
+
+// 🩸 WITHOUT STORE
+// app.use(
+//   session({
+//     name: "session_id",
+//     secret: process.env.SESSION_SECRET || "secret",
+//     resave: false,
+//     saveUninitialized: false,
+//     rolling: true,
+//     cookie: {
+//       httpOnly: true,
+//       secure: process.env.NODE_ENV === "production",
+//       sameSite: "strict",
+//       maxAge: 2000 * 60, // 2000ms * 60 = 2 min (adjust kung gusto mo)
+//     },
+//   })
+// );
 
 // VIEWS
 // FRONTEND ROUTES

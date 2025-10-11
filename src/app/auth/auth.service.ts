@@ -1,4 +1,3 @@
-import { ResultSetHeader } from "mysql2";
 import { v4 as uuidv4 } from "uuid";
 import { ErrorClass } from "../../class/ErrorClass.js";
 import { getPool } from "../../db/mysql/mysql.js";
@@ -30,14 +29,16 @@ class Auth {
     const hashedPassword = await hashPassword(userData.password!);
     // create user
     const userId = uuidv4();
+
+    // insering into users table
     await pool.query(
       `
-      INSERT INTO users (id, username, email, password) 
+      INSERT INTO users (id, username, email, password)
       VALUES (?, ?, ?, ?)
       `,
       [userId, userData.username, userData.email, hashedPassword]
     );
-
+    // insering into accounts table
     await pool.query(
       ` INSERT INTO accounts (id, user_id, provider, provider_account_id)
         VALUES (?, ?, ?, ?)
@@ -65,7 +66,7 @@ class Auth {
 
     // 1. Find user by email
     const [rows] = await pool.query(
-      `SELECT id, username, email, password, created_at, updated_at 
+      `SELECT id, username, email, password, created_at, updated_at
      FROM users WHERE email = ?`,
       [userData.email]
     );
@@ -90,21 +91,41 @@ class Auth {
     // 4. Remove password before returning
     delete user.password;
 
-    // 5. Return user + session token (para sa controller)
+    // 5. Create session
+    // const sessionId = uuidv4();
+    // const sessionToken = uuidv4(); // pwede rin mas secure generator
+    // const expiresAt = new Date(Date.now() + 1000 * 60 * 60 * 24); // 1 day expiry
+
+    // await pool.query(
+    //   `INSERT INTO sessions
+    //  (id, user_id, session_token, user_agent, ip_address, expires_at)
+    //  VALUES (?, ?, ?, ?, ?, ?)`,
+    //   [
+    //     sessionId,
+    //     user.id,
+    //     sessionToken,
+    //     userAgent,
+    //     userIP || "unknown",
+    //     expiresAt,
+    //   ]
+    // );
+
+    // 6. Return user + session token (para sa controller)
     return { ...user };
   }
 
-  public async logout(session_token: string) {
-    const pool = getPool()!;
-    const [result] = await pool.query<ResultSetHeader>(
-      "DELETE FROM sessions WHERE session_token = ?",
-      [session_token]
-    );
-    if (result.affectedRows === 0) {
-      throw new ErrorClass.NotFound("Session not found or already logged out.");
-    }
-    return { message: "User logged out successfully" };
-  }
+  // ⚠️⚠️⚠️  HANDLED BY THE CONTROLLER ALREADY ⚠️⚠️⚠️
+  // public async logout(session_token: string) {
+  //   const pool = getPool()!;
+  //   const [result] = await pool.query<ResultSetHeader>(
+  //     "DELETE FROM sessions WHERE session_token = ?",
+  //     [session_token]
+  //   );
+  //   if (result.affectedRows === 0) {
+  //     throw new ErrorClass.NotFound("Session not found or already logged out.");
+  //   }
+  //   return { message: "User logged out successfully" };
+  // }
 
   public async forgotPassword(email: string) {
     return { message: "Password reset link sent" };

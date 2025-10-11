@@ -1,12 +1,10 @@
-// src/dtos/user.dto.ts
+import { SafeUserDTO, User } from "../../dto/user.dto.js";
 
-export interface CreateDto {
-  name: string;
-  email: string;
-  // pwede ka magdagdag dito ng iba pang fields kung meron
-}
+// 🔵 Incoming request DTOs
+export type CreateUserDTO = Partial<Pick<User, "username" | "email">>; // user can update username or email
+export type ChangePasswordDTO = Pick<User, "password"> & {
+  newPassword: string;
+};
 
-export interface UpdateDto {
-  name?: string; // optional kasi pwedeng i-partial update
-  email?: string;
-}
+// 🟢 Outgoing response DTOs
+export type UserProfileDTO = SafeUserDTO; // always safe to return

@@ -2,129 +2,184 @@
 
 import { Request, Response } from "express";
 import { ErrorClass } from "../../class/ErrorClass.js";
-import { AuthResponseDTO, LoginDTO, RegisterDTO } from "./auth.dto.js";
+import { ApiResponse, ErrorResponse } from "../../dto/global.dto.js";
+import { SafeUserDTO } from "../../dto/user.dto.js";
+import { LoginDTO, RegisterDTO } from "./auth.dto.js";
 import { AuthService } from "./auth.service.js";
 
 export const CURRENT_USER = async (
-  req: Request<{}, any, { user: any }, {}>,
-  res: Response<AuthResponseDTO>
-) => {
+  req: Request,
+  res: Response<ApiResponse<SafeUserDTO> | ErrorResponse>
+): Promise<void> => {
   try {
-    const { meta, ...safeSession } = req.user;
+    if (!req.user) {
+      res.status(401).json({
+        success: false,
+        message: "No user logged in",
+      });
 
-    res.status(201).json({
+      return;
+    }
+
+    const { ...safeUser } = req.user as SafeUserDTO;
+
+    res.status(200).json({
       success: true,
-      message: "Current User",
-      data: {
-        user: safeSession,
-      },
-    });
-  } catch (error: any) {
-    res.status(400).json({ success: false, message: error.message });
+      message: "Current user retrieved successfully",
+      data: safeUser,
+    } as ApiResponse<SafeUserDTO>);
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      res.status(400).json({
+        success: false,
+        message: error.message,
+      });
+    } else {
+      res.status(400).json({
+        success: false,
+        message: "Unknown error",
+      });
+    }
   }
 };
-
 export const REGISTER_USER = async (
   req: Request<{}, any, RegisterDTO, {}>,
-  res: Response<AuthResponseDTO>
+  res: Response<ApiResponse<SafeUserDTO> | ErrorResponse>
 ): Promise<void> => {
   try {
     const {
       body: { username, email, password },
     } = req;
+    console.log("REQUEST BODY", req.body);
+
     if (!email || !password || !username) {
       throw new ErrorClass.BadRequest("All fields are required ! 💁");
     }
     const user = await AuthService.register(req.body);
 
-    // serialize here...
-    const { password: pass, ...safefuser } = user as any;
-
-    console.log("NEWLY REGISTERED USER 👧", user);
+    const safeUser: SafeUserDTO = {
+      id: user.id,
+      username: user.username,
+      email: user.email,
+      created_at: user.created_at,
+      updated_at: user.updated_at,
+    };
 
     res.status(201).json({
       success: true,
       message: "User registered successfully",
-      data: safefuser,
+      data: safeUser,
     });
-  } catch (error: any) {
-    res.status(400).json({ success: false, message: error.message });
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      res.status(400).json({ success: false, message: error.message });
+    } else {
+      res.status(400).json({ success: false, message: "Unknown error" });
+    }
   }
 };
-
 // User Login
 export const LOGIN_USER = async (
-  req: Request<{}, any, LoginDTO, {}>,
-  res: Response<AuthResponseDTO>
+  req: Request<{}, {}, LoginDTO>,
+  res: Response<ApiResponse<SafeUserDTO> | ErrorResponse>
 ): Promise<void> => {
-  const {
-    body: { email, password },
-  } = req;
-  const userAgent = req.headers["user-agent"] || "unknown";
-  const userIP =
-    req.headers["x-forwarded-for"]?.toString().split(",")[0] || req.ip;
   try {
+    const { email, password } = req.body;
+
+    console.log("REQUEST BODY", req.body);
+    const userAgent = req.headers["user-agent"] || "unknown";
+    const userIP =
+      req.headers["x-forwarded-for"]?.toString().split(",")[0] || req.ip;
+
     if (!email || !password) {
       throw new ErrorClass.BadRequest("Must have email and password");
     }
 
     const user = await AuthService.login(req.body, userAgent, userIP);
-    console.log("NEWLY LOGGED IN USER 👧", user);
 
-    // 🔴 SAVED TO SESSION
+    // Save to session
     req.session.user = {
       id: user.id,
       username: user.username,
       email: user.email,
-      meta: {
-        ip: req.headers["x-forwarded-for"]?.toString().split(",")[0] || req.ip,
-        userAgent: req.headers["user-agent"] || "unknown",
-      },
+      meta: { ip: userIP, userAgent },
+    };
+
+    const safeUser: SafeUserDTO = {
+      id: user.id,
+      username: user.username,
+      email: user.email,
+      created_at: user.created_at,
+      updated_at: user.updated_at,
     };
 
     res.status(200).json({
       success: true,
       message: "User logged in successfully",
-      data: {
-        id: user.id,
-        username: user.username,
-        email: user.email,
-      },
-    });
-  } catch (error: any) {
-    res.status(400).json({ success: false, message: error.message });
+      data: safeUser,
+    } as ApiResponse<SafeUserDTO>);
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      const err = error as Express.CustomError;
+      res.status(err.statusCode || 400).json({
+        success: false,
+        message: err.message,
+      });
+    } else {
+      res.status(400).json({
+        success: false,
+        message: "Unknown error",
+      });
+    }
   }
 };
 
 // User Logout
 export const LOGOUT_USER = async (
   req: Request,
-  res: Response
+  res: Response<ApiResponse<null> | ErrorResponse>
 ): Promise<void> => {
   try {
+    if (!req.session) {
+      // no session exists (e.g. already logged out)
+      res.status(200).json({
+        success: true,
+        message: "No active session. User already logged out.",
+        data: null,
+      });
+    }
+
+    // Destroy session
     req.session.destroy((err) => {
       if (err) {
-        console.error("Session destroy error:", err);
-        return res
-          .status(500)
-          .json({ success: false, message: "Failed to logout" });
+        console.error("❌ Session destroy error:", err);
+        return res.status(500).json({
+          success: false,
+          message: "Failed to destroy session",
+        });
       }
 
-      // 3️⃣ Clear cookie (connect.sid is default for express-session)
+      // Clear the session cookie
       res.clearCookie("session_id", {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
         sameSite: "strict",
       });
 
-      // 4️⃣ Success response
       res.status(200).json({
         success: true,
         message: "User logged out successfully",
+        data: null,
       });
     });
-  } catch (error: any) {
-    res.status(400).json({ success: false, message: error.message });
+  } catch (error) {
+    console.error("🚨 Logout controller error:", error);
+
+    res.status(500).json({
+      success: false,
+      message:
+        error instanceof Error ? error.message : "Unexpected logout error",
+    });
   }
 };
 

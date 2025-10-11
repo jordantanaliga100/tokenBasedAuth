@@ -16,6 +16,7 @@ export default async function AuthGuards(
       );
     }
     req.user = session;
+    req.session.save();
     next();
   } catch (error) {
     next(error);

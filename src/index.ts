@@ -20,3 +20,45 @@ const start = async () => {
   }
 };
 start();
+
+// 🏹🏹🏹🏹 SIMULATION  !
+// import express from "express";
+// import session from "express-session";
+
+// const app = express();
+
+// const createStore = async () => {
+//   const mysqlSession = (await import("express-mysql-session")).default;
+//   const MySQLStore = mysqlSession(session as any);
+
+//   const store = new MySQLStore({
+//     host: "localhost",
+//     port: 3306,
+//     user: "root",
+//     password: "secret",
+//     database: "mydb",
+//   });
+
+//   app.use(
+//     session({
+//       secret: "keyboard cat",
+//       resave: false,
+//       saveUninitialized: false,
+//       store,
+//       cookie: { maxAge: 1000 * 60 * 60 },
+//     })
+//   );
+
+//   app.get("/", (req, res) => {
+//     if (!req.session.views) req.session.views = 1;
+//     else req.session.views++;
+//     res.send(`Hello! You have visited ${req.session.views} times.`);
+//   });
+
+//   app.listen(3000, () =>
+//     console.log("✅ Server running on http://localhost:3000")
+//   );
+// };
+
+// // 🔥 run async init
+// createStore();
