@@ -1,62 +1,53 @@
-import { CreateDTO, ResponseDTO } from "../../utils/global-dto.js";
+import { SafeUserDTO, User } from "../../dto/user.dto.js";
 
-export interface AuthDTO {
-  id?: string; // optional for input, required sa response
-  email?: string;
-  password?: string;
-  username?: string; // optional depende sa registration
-  created_at?: Date;
-  updated_at?: Date;
-}
+// 🔵 Incoming request DTOs
+export type RegisterDTO = Pick<User, "username" | "email" | "password">;
+export type LoginDTO = Pick<User, "email" | "password">;
 
-export type RegisterDTO = CreateDTO<
-  Pick<AuthDTO, "username" | "email" | "password">
->;
-export type LoginDTO = CreateDTO<Pick<AuthDTO, "email" | "password">>;
-export type AuthResponseDTO = ResponseDTO<
-  AuthDTO,
-  { cookie?: string; user?: any; session?: any }
->;
-// export type CurrentUserResponseDTO = ResponseDTO<{ cookie?: string }>;
+// 🟢 Outgoing response DTOs
+export type CurrentUserDTO = SafeUserDTO;
 
-// // src/modules/auth/auth.dto.ts
+// old way 🩸
+// // export type CurrentUserResponseDTO = ResponseDTO<{ cookie?: string }>;
 
-// /**
-//  * 🔹 Base interface: lahat ng fields ng Auth/User
-//  * Ito yung pinaka root na pwede mong i-derive sa lahat.
-//  */
-// export interface AuthDTO {
-//   id?: string;       // optional for input, required sa response
-//   email: string;
-//   password: string;
-//   username?: string; // optional depende sa registration
-//   createdAt?: Date;
-//   updatedAt?: Date;
-// }
+// // // src/modules/auth/auth.dto.ts
 
-// /**
-//  * 🔹 RegisterDTO: required email, password, username
-//  */
-// export type RegisterDTO = Pick<AuthDTO, "email" | "password" | "username">;
+// // /**
+// //  * 🔹 Base interface: lahat ng fields ng Auth/User
+// //  * Ito yung pinaka root na pwede mong i-derive sa lahat.
+// //  */
+// // export interface AuthDTO {
+// //   id?: string;       // optional for input, required sa response
+// //   email: string;
+// //   password: string;
+// //   username?: string; // optional depende sa registration
+// //   createdAt?: Date;
+// //   updatedAt?: Date;
+// // }
 
-// /**
-//  * 🔹 LoginDTO: email at password lang
-//  */
-// export type LoginDTO = Pick<AuthDTO, "email" | "password">;
+// // /**
+// //  * 🔹 RegisterDTO: required email, password, username
+// //  */
+// // export type RegisterDTO = Pick<AuthDTO, "email" | "password" | "username">;
 
-// /**
-//  * 🔹 ResponseDTO: hindi natin isasama ang password
-//  */
-// export type UserResponseDTO = Omit<AuthDTO, "password">;
+// // /**
+// //  * 🔹 LoginDTO: email at password lang
+// //  */
+// // export type LoginDTO = Pick<AuthDTO, "email" | "password">;
 
-// /**
-//  * 🔹 UpdateDTO: pwede nilang i-update kahit alin (lahat optional)
-//  */
-// export type UpdateUserDTO = Partial<Omit<AuthDTO, "id">>;
+// // /**
+// //  * 🔹 ResponseDTO: hindi natin isasama ang password
+// //  */
+// // export type UserResponseDTO = Omit<AuthDTO, "password">;
 
-// /**
-//  * 🔹 SessionDTO: kapag may session ka sa response
-//  */
-// export interface SessionResponseDTO extends UserResponseDTO {
-//   sessionToken: string;
-// }
+// // /**
+// //  * 🔹 UpdateDTO: pwede nilang i-update kahit alin (lahat optional)
+// //  */
+// // export type UpdateUserDTO = Partial<Omit<AuthDTO, "id">>;
+
+// // /**
+// //  * 🔹 SessionDTO: kapag may session ka sa response
+// //  */
+// // export interface SessionResponseDTO extends UserResponseDTO {
+// //   sessionToken: string;
+// // }

@@ -51,13 +51,13 @@
   <body>
     <div class="container">
       <h2>Create Account</h2>
+      <p id="error" style="width: 100%; color: red"></p>
       <form id="registerForm">
-        <input type="text" id="username" placeholder="Username" required />
-        <input type="email" id="email" placeholder="Email" required />
-        <input type="password" id="password" placeholder="Password" required />
+        <input type="text" id="username" placeholder="Username" />
+        <input type="email" id="email" placeholder="Email" />
+        <input type="password" id="password" placeholder="Password" />
         <button type="submit">Register</button>
       </form>
-      <p id="error" style="color: red"></p>
       <p>Already have an account?</p>
       <a href="/login"> Login</a>
     </div>
