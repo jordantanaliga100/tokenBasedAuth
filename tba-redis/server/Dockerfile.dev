@@ -1,0 +1,29 @@
+
+# Base Image
+FROM node:20
+
+# Install pnpm globally
+RUN npm install -g pnpm
+
+# Create a app directory
+WORKDIR /app
+
+# Install dependencies
+COPY package*.json ./
+# Copy source code
+
+# Run deps
+RUN pnpm install
+
+COPY . .
+
+# Build typescript
+# RUN npm run build
+
+# Expose the app port (optional but recommended for Docker networking)
+EXPOSE 5000
+
+# Start the app
+CMD ["pnpm", "run", "start:dev"]
+
+

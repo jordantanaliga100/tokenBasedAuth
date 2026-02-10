@@ -1,0 +1,17 @@
+{
+    // Visit https://aka.ms/tsconfig to read more about this file
+    "extends": "@tsconfig/node22/tsconfig.json",
+    "compilerOptions": {
+        "rootDir": "src",
+        "outDir": "dist",
+        "allowJs": true,
+        "resolveJsonModule": true,
+        "noEmit": false,
+        "forceConsistentCasingInFileNames": true,
+        "incremental": true,
+        "tsBuildInfoFile": "./.tsbuildinfo",
+        "typeRoots": ["./src/types", "./node_modules/@types"]
+    },
+    "include": ["src/**/*.ts", "src/**/*.js", "src/types/**/*.d.ts"],
+    "exclude": ["node_modules", "dist"]
+}
