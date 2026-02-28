@@ -7,6 +7,7 @@ declare module 'express-session' {
             username?: string
             email?: string
             role?: string
+            is_verified?: boolean
             meta?: {
                 ip?: string
                 userAgent?: string

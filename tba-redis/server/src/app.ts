@@ -5,7 +5,7 @@ import { TopMiddlewares } from './middlewares/Top'
 import ApiRoutes from './routes'
 
 const app = express()
-
+app.set('trust proxy', 1)
 // TOP MIDDLEWARES
 TopMiddlewares.forEach((mw) => app.use(mw))
 

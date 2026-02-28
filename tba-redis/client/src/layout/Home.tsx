@@ -1,19 +1,18 @@
-import { Link } from "react-router";
-import { Button } from "../components/ui/button";
+import { Outlet } from "react-router";
 
-export default function Home() {
+const HomeLayout = () => {
   return (
-    <div className="text-xl p-4 rounded-md flex flex-col items-start gap-4">
-      <h1 className="text-2xl font-bold flex justify-center items-center ">
-        <pre>SBA-</pre>
-        <span className="font-normal text-sm  text-black">
-          Session Based Auth
-        </span>
-      </h1>
-      <pre className="text-sm">a session based auth with redis </pre>
-      <Link to="a">
-        <Button>Proceed</Button>
-      </Link>
+    <div className="flex min-h-screen w-full ">
+      {/* <Link className="w-1/4 bg-zinc-100 p-4" to="/">
+        <h2 className="font-bold text-2xl">SBA</h2>
+      </Link> */}
+
+      {/* 👉 Right Side */}
+      <div className="w-full p-4">
+        <Outlet /> {/* ✨ Main Content ✨ */}
+      </div>
     </div>
   );
-}
+};
+
+export default HomeLayout;

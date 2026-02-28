@@ -1,15 +1,15 @@
-import type { Store } from 'express-session'
 import session from 'express-session'
+import { redisStore } from '../db/redis/redis.config'
 
-export const setSession = (store?: Store) => {
+export const setSession = () => {
     const isProduction = process.env.NODE_ENV === 'production'
 
     return session({
         name: 'session_id',
-        store, // undefined = uses in-memory store
+        store: redisStore, // undefined = uses in-memory store
         secret: process.env.SESSION_SECRET || 'secret',
         saveUninitialized: false,
-        resave: true,
+        resave: false,
         rolling: true,
         cookie: {
             httpOnly: true,

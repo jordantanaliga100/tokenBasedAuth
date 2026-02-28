@@ -1,4 +1,3 @@
-// middlewares/bottomMiddlewares.ts
 import { ErrorRequestHandler, NextFunction, Request, RequestHandler, Response } from 'express'
 
 interface AppError extends Error {

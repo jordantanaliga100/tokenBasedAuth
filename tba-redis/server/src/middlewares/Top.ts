@@ -1,7 +1,6 @@
 import cors from 'cors'
 import express, { RequestHandler } from 'express'
-import expressSession from 'express-session'
-import { sessionConfig } from '../db/redis/redis.config'
+import { setSession } from '../utils/setSessionInCookie'
 
 export const TopMiddlewares: RequestHandler[] = [
     cors({
@@ -13,5 +12,5 @@ export const TopMiddlewares: RequestHandler[] = [
     express.json(),
     express.urlencoded({ extended: true }),
     express.static('./public'),
-    expressSession(sessionConfig),
+    setSession(),
 ]
