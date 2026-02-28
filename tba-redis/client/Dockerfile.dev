@@ -1,0 +1,17 @@
+FROM node:20-slim
+
+RUN corepack enable && corepack prepare pnpm@latest --activate
+
+WORKDIR /app
+
+# Copy package files para sa install
+COPY package.json pnpm-lock.yaml ./
+RUN pnpm install
+
+# Copy everything else
+COPY . .
+
+EXPOSE 5173
+
+# Ang --host ay kailangan para "makita" ni Nginx yung Vite sa loob ng Docker network
+CMD ["pnpm", "dev", "--host"]

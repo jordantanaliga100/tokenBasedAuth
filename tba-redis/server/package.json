@@ -1,0 +1,73 @@
+{
+    "author": "",
+    "dependencies": {
+        "@prisma/client": "^7.3.0",
+        "bcrypt": "^6.0.0",
+        "connect-redis": "^9.0.0",
+        "cors": "^2.8.5",
+        "dotenv": "^17.2.3",
+        "express": "^5.1.0",
+        "express-rate-limit": "^8.2.1",
+        "express-session": "^1.18.2",
+        "ioredis": "^5.9.2",
+        "jiti": "^2.6.1",
+        "jsonwebtoken": "^9.0.2",
+        "mongodb": "^6.20.0",
+        "morgan": "^1.10.1",
+        "mysql2": "^3.15.2",
+        "nodemailer": "^8.0.1",
+        "pg": "^8.16.3",
+        "redis": "^5.8.3"
+    },
+    "description": "",
+    "devDependencies": {
+        "@eslint/js": "^9.38.0",
+        "@tsconfig/node22": "^22.0.2",
+        "@types/bcrypt": "^6.0.0",
+        "@types/cors": "^2.8.19",
+        "@types/express": "^5.0.3",
+        "@types/express-session": "^1.18.2",
+        "@types/morgan": "^1.9.10",
+        "@types/node": "^24.7.1",
+        "@types/nodemailer": "^7.0.11",
+        "@types/pg": "^8.15.5",
+        "eslint": "^9.38.0",
+        "globals": "^16.4.0",
+        "husky": "^9.1.7",
+        "lint-staged": "^16.2.6",
+        "nodemon": "^3.1.10",
+        "prettier": "^3.6.2",
+        "prisma": "^7.3.0",
+        "ts-node": "^10.9.2",
+        "ts-node-dev": "^2.0.0",
+        "tsx": "^4.20.6",
+        "typescript": "^5.9.3",
+        "typescript-eslint": "^8.46.2"
+    },
+    "keywords": [],
+    "license": "ISC",
+    "lint-staged": {
+        "*": [
+            "pnpm lint:fix",
+            "pnpm format"
+        ],
+        "*.{json,md}": [
+            "pnpm format"
+        ]
+    },
+    "main": "server.js",
+    "name": "net-template",
+    "packageManager": "pnpm@10.13.1",
+    "scripts": {
+        "build": "tsc",
+        "clean": "rm -rf dist",
+        "dev": "tsx watch src/server.ts",
+        "format": "prettier . --write",
+        "lint": "eslint . --ext .ts,.js",
+        "lint:fix": "eslint . --ext .ts,.js --fix",
+        "prepare": "husky",
+        "start": "node dist/server.js",
+        "start:dev": "pnpm run dev"
+    },
+    "version": "1.0.0"
+}
