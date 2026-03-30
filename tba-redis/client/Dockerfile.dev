@@ -1,17 +1,19 @@
-FROM node:20-slim
-
-RUN corepack enable && corepack prepare pnpm@latest --activate
+# /client/Dockerfile.dev
+FROM node:20-alpine
 
 WORKDIR /app
 
-# Copy package files para sa install
-COPY package.json pnpm-lock.yaml ./
-RUN pnpm install
+# Copy package files muna para sa caching ng layers
+COPY package.json pnpm-lock.yaml* ./
 
-# Copy everything else
+# Install pnpm (dahil pnpm ang gamit mo sa backend, gawin nating uniform)
+RUN npm install -g pnpm && pnpm install
+
+# Copy ang buong source code
 COPY . .
 
+# I-expose ang Vite port
 EXPOSE 5173
 
-# Ang --host ay kailangan para "makita" ni Nginx yung Vite sa loob ng Docker network
-CMD ["pnpm", "dev", "--host"]
+# Patakbuhin ang Vite sa host mode para makita ng Nginx
+CMD ["pnpm", "run", "dev", "--host"]
